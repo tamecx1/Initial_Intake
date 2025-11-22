@@ -2,10 +2,99 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>TSO Intake</title>
+    <title>TSO Intake Chatbot</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        #chatbox {
+            width: 100%;
+            max-width: 680px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+
+        .message {
+            margin-bottom: 15px;
+        }
+
+        .bot {
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .user {
+            color: #444;
+            margin-left: 20px;
+        }
+
+        #input-area {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        #send-btn {
+            padding: 12px 20px;
+            font-size: 14px;
+            background: #003366;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #send-btn:hover {
+            background: #002244;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>TSO Intake System</h1>
-    <p>This page will later be replaced with the interactive chatbot UI.</p>
+
+<div id="chatbox">
+    <div id="messages"></div>
+
+    <div id="input-area">
+        <input id="user-input" placeholder="Type here..." />
+        <button id="send-btn">Send</button>
+    </div>
+</div>
+
+<script>
+    const messages = document.getElementById("messages");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    function addMessage(text, sender) {
+        const div = document.createElement("div");
+        div.classList.add("message");
+        div.classList.add(sender);
+        div.textContent = text;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function bot(text) { addMessage(text, "bot"); }
+    function user(text) { addMessage(text, "user"); }
+
+    // INITIAL BOT MESSAGE
+    bot("Welcome! I'll guide you through a quick set of questions so we can prepare a preliminary SMT line configuration for your project. You can stop and return anytime using your Project ID.");
+
+</script>
+
 </body>
 </html>
