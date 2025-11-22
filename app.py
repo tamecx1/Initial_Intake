@@ -141,12 +141,19 @@ def submit():
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(text_content)
 
-    # Send email
+    # Try to send email, but do not fail if SMTP is not configured correctly yet
     subject = f"TSO Intake - Project {project_id}"
     body = f"Please find attached the intake file for Project ID {project_id}."
-    send_email_with_attachment(subject, body, filename, text_content)
 
-    return jsonify({"status": "ok", "message": "Intake saved and emailed."})
+    try:
+        send_email_with_attachment(subject, body, filename, text_content)
+        email_status = "emailed"
+    except Exception as e:
+        print(f"Email error: {e}")
+        email_status = "saved_only"
+
+    return jsonify({"status": "ok", "message": f"Intake {email_status}."})
+
 
 
 if __name__ == "__main__":
