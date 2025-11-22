@@ -104,6 +104,7 @@
 
   let projectId = null;
   let currentStep = 0;
+  let waitingForProjectId = true;
 
   const answers = {
     project_id: "",
@@ -156,28 +157,54 @@
       text = text.trim();
       if (!text) return;
     }
+
     addMessage(text, "user");
     inputEl.value = "";
+
+    // Paso especial: elegir / capturar Project ID
+    if (waitingForProjectId) {
+      handleProjectId(text);
+      return;
+    }
+
     processAnswer(currentStep, text);
     currentStep++;
     nextStep();
   }
 
-  async function start() {
-    try {
-      const res = await fetch("/new_project");
-      const data = await res.json();
-      projectId = data.project_id;
-      answers.project_id = projectId;
-
-      addMessage("Welcome! I'll guide you through a quick set of questions so we can prepare a preliminary SMT line configuration for your project. You can stop and return anytime using your Project ID.");
-      addMessage(`Your Project ID is: ${projectId}`);
-      addMessage("Even with minimal information, we will generate a solution that can be oriented toward a specific product or designed with flexibility to support future assemblies. From the full universe of possible configurations, our goal is to reduce the uncertainty and move as close as possible to your real manufacturing needs—without limiting your options to a single product. We'll work together to identify the best solution for your operation.");
-      nextStep();
-    } catch (e) {
-      console.error(e);
-      addMessage("There was a problem initializing the project. Please try again later.");
+  async function handleProjectId(raw) {
+    const value = raw.trim();
+    if (!value) {
+      addMessage("Please enter an existing Project ID, or type NEW to generate one.");
+      return;
     }
+
+    if (value.toUpperCase() === "NEW") {
+      try {
+        const res = await fetch("/new_project");
+        const data = await res.json();
+        projectId = data.project_id;
+        answers.project_id = projectId;
+        addMessage(`Your new Project ID is: ${projectId}. Please write this number down so you and your team can reuse it in future sessions.`);
+        waitingForProjectId = false;
+        nextStep();
+      } catch (e) {
+        console.error(e);
+        addMessage("We could not generate a new Project ID right now. Please try again in a moment.");
+      }
+    } else {
+      projectId = value;
+      answers.project_id = value;
+      addMessage(`We will use Project ID: ${projectId}.`);
+      waitingForProjectId = false;
+      nextStep();
+    }
+  }
+
+  function start() {
+    addMessage("Welcome! I'll guide you through a quick set of questions so we can prepare a preliminary SMT line configuration for your project. You can stop and return anytime using your Project ID.");
+    addMessage("Even with minimal information, we will generate a solution that can be oriented toward a specific product or designed with flexibility to support future assemblies. From the full universe of possible configurations, our goal is to reduce uncertainty and move as close as possible to your real manufacturing needs—without limiting your options to a single product.");
+    addMessage("If you already have a Project ID for this project, please type it now. If this is your first time, type NEW and we will generate one for you.");
   }
 
   function nextStep() {
@@ -205,6 +232,9 @@
         break;
       case 7:
         addMessage("Each time this project is accessed, we will revisit your estimated start of production to ensure the configuration remains aligned with your timeline.");
+        addMessage("When you're ready in future sessions, we will always start by confirming that estimated start of production before going deeper into technical details.");
+        currentStep++;
+        nextStep();
         break;
       case 8:
         addMessage("Is your PCB processed on one side only, or on both sides?");
@@ -258,10 +288,10 @@
         ]);
         break;
       case 13:
-        addMessage("Does your product use any of these component types? You can type a comma-separated list: QFN, BGA, LCC, 0402, None, Not sure.");
+        addMessage("Does your product use any of these component types: QFN, BGA, LCC, 0402? You can type a comma-separated list (for example: QFN, BGA) or answer: None, Not sure. Even if the information is not exact, we will process it as provided and allow the system to make the necessary assumptions.");
         break;
       case 14:
-        addMessage("Will the products to be assembled in your new SMT line operate in demanding conditions such as vibration, high temperatures, continuous use, outdoor exposure, human-safety applications, or environments requiring long-term reliability?");
+        addMessage("Please tell us if your product will operate in any of these demanding conditions (answer with Yes, No, or Not sure): vibration, high temperatures, continuous use, outdoor exposure, human-safety applications, or environments requiring long-term reliability.");
         addOptions([
           { label: "Yes", value: "Yes" },
           { label: "No", value: "No" },
